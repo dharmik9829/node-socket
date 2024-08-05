@@ -31,8 +31,17 @@ io.use((socket, next) => {
 
 io.on("connection", async (socket) => {
   try {
-    console.log(`User ${socket.userId} connected with socket ID ${socket.id}`);
     userSocketMap.set(socket.userId, socket.id);
+    
+    socket.on('READ_SUCCESS', async ({ senderId, messageId }) => {
+      console.log('READ_SUCCESS_FIRED');
+      const senderSocket = userSocketMap.get(senderId);
+      console.log(senderSocket);
+      if(senderSocket)
+      {
+        io.to(senderSocket).emit("UPDATE_MESSAGE_STATUS", { sender: senderId ,messageId, status: "seen" });
+      }
+    });
 
     // Handle sending messages
     socket.on("SEND_MESSAGE", async ({ receiverId, message, messageId }) => {
@@ -43,19 +52,20 @@ io.on("connection", async (socket) => {
         const formattedDate = now.format("D MMMM YYYY hh:mm A");
         io.to(receiverSocketId).emit("receive_message", {
           message,
+          messageId,
           sender: socket.userId,
           username: socket.username,
           time: formattedDate,
         });
+        
       } else {
-        socket.emit("UPDATE_MESSAGE_STATUS", { messageId, status: "unread" });
+        socket.emit("UPDATE_MESSAGE_STATUS", { sender: socket.userId, messageId, status: "unread" });
       }
     });
 
     // Handle disconnection
     socket.on("disconnect", () => {
       userSocketMap.delete(socket.userId);
-      console.log(`User ${socket.userId} disconnected`);
     });
   } catch (error) {
     console.error("Error handling connection:", error);
