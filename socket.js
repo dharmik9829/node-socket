@@ -2,8 +2,16 @@ const express = require("express");
 const http = require("http");
 const socketIo = require("socket.io");
 const app = express();
+const cors = require('cors');
 const moment = require("moment");
 
+const corsOptions = {
+  origin: '*', // Allow all origins
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions));
 const server = http.createServer(app);
 
 // Set up Socket.io
