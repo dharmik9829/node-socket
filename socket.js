@@ -19,6 +19,7 @@ const io = socketIo(server, {
   cors: {
     origin: "*",
   },
+  transports: ['websocket'] 
 });
 
 // Create a Map to track user IDs and their socket IDs
